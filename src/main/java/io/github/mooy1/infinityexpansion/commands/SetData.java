@@ -60,7 +60,6 @@ public final class SetData extends SubCommand {
             Slimefun.getDatabaseManager().getBlockDataController().loadBlockDataAsync(
                 blockData,
                 new IAsyncReadCallback<SlimefunBlockData>() {
-                    @Override
                     public boolean runOnMainThread() {
                         return true;
                     }

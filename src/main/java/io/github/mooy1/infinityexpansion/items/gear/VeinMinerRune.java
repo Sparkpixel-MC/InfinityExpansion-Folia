@@ -249,7 +249,8 @@ public final class VeinMinerRune extends SlimefunItem implements Listener, NotPl
         }
 
         if (ThreadLocalRandom.current().nextBoolean()) {
-            FoodLevelChangeEvent event = new FoodLevelChangeEvent(p, p.getFoodLevel() - 1);
+            ItemStack held = p.getInventory().getItemInMainHand();
+            FoodLevelChangeEvent event = new FoodLevelChangeEvent(p, p.getFoodLevel() - 1, held);
             Bukkit.getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
                 p.setFoodLevel(event.getFoodLevel());

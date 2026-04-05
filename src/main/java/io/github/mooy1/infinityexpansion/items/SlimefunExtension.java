@@ -302,8 +302,13 @@ public final class SlimefunExtension {
                     if (!w.isChunkLoaded(chunkX, chunkZ)) {
                         return;
                     }
+                    boolean checkWitherProof;
+                    try {
+                        checkWitherProof = block.getType() == Material.AIR;
+                    } catch (NullPointerException e) {
+                        return;
+                    }
 
-                    boolean checkWitherProof = block.getType() == Material.AIR;
                     for (Entity entity : w.getNearbyEntities(check, 8, 8, 8)) {
                         if (entity instanceof LivingEntity && entity.isValid()) {
                             if (checkWitherProof) {

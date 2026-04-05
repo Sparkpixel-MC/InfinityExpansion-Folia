@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.mooy1</groupId>
     <artifactId>InfinityExpansion</artifactId>
-    <version>1.2.4-FoliaL</version>
+    <version>1.8.7-Folia</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

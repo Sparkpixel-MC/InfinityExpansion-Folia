@@ -66,7 +66,12 @@ public final class VeinMinerRune extends SlimefunItem implements Listener, NotPl
     private static final NamespacedKey key = InfinityExpansion.createKey("vein_miner");
 
     private final CoolDowns cooldowns = new CoolDowns(1000);
-    private Block processing;
+
+    /**
+     * Marks that the current thread is inside a synthetic BlockBreakEvent call,
+     * so our own handler can ignore them without sharing state across region threads
+     */
+    private static final ThreadLocal<Boolean> SYNTHETIC_EVENT = ThreadLocal.withInitial(() -> false);
 
     public VeinMinerRune(ItemGroup category, SlimefunItemStack item, RecipeType type, ItemStack[] recipe) {
         super(category, item, type, recipe);
@@ -76,7 +81,8 @@ public final class VeinMinerRune extends SlimefunItem implements Listener, NotPl
     @EventHandler
     public void onDrop(PlayerDropItemEvent e) {
         if (isItem(e.getItemDrop().getItemStack()) && e.getItemDrop().getItemStack().getAmount() == 1) {
-            Scheduler.run(20, () -> activate(e.getPlayer(), e.getItemDrop()));
+            // must run on the dropped item's entity scheduler on Folia
+            Scheduler.runAtEntity(e.getItemDrop(), 20, () -> activate(e.getPlayer(), e.getItemDrop()));
         }
     }
 
@@ -99,7 +105,9 @@ public final class VeinMinerRune extends SlimefunItem implements Listener, NotPl
                 // This lightning is just an effect, it deals no damage.
                 l.getWorld().strikeLightningEffect(l);
 
-                Scheduler.run(10, () -> {
+                // we are already on the rune's entity thread, so the nearby item and effects
+                // can be accessed 1 tick later from the same context
+                Scheduler.runAtEntity(rune, 10, () -> {
                     // Being sure entities are still valid and not picked up or whatsoever.
                     if (rune.isValid() && item.isValid() && rune.getItemStack().getAmount() == 1) {
 
@@ -183,9 +191,7 @@ public final class VeinMinerRune extends SlimefunItem implements Listener, NotPl
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
-        Block b = e.getBlock();
-
-        if (this.processing == b) {
+        if (SYNTHETIC_EVENT.get()) {
             return;
         }
 
@@ -200,6 +206,8 @@ public final class VeinMinerRune extends SlimefunItem implements Listener, NotPl
         if (!isVeinMiner(item)) {
             return;
         }
+
+        Block b = e.getBlock();
 
         if (p.getFoodLevel() == 0) {
             p.sendMessage(ChatColor.GOLD + "你饿了，无法使用带有矿脉符文的工具!");
@@ -231,16 +239,13 @@ public final class VeinMinerRune extends SlimefunItem implements Listener, NotPl
         World w = b.getWorld();
 
         for (Block mine : found) {
-            this.processing = mine;
-            BlockBreakEvent event = new BlockBreakEvent(mine, p);
-            Bukkit.getPluginManager().callEvent(event);
-            if (!event.isCancelled()) {
-                if (event.isDropItems()) {
-                    for (ItemStack drop : mine.getDrops(item)) {
-                        w.dropItemNaturally(l, drop);
-                    }
-                }
-                mine.setType(Material.AIR);
+            if (Bukkit.isOwnedByCurrentRegion(mine)) {
+                mineBlock(mine, p, item, l);
+            }
+            else {
+                // blocks in other regions must be broken from their own region thread;
+                // their drops spawn at their own location instead of the original one
+                Scheduler.runAtRegion(mine.getLocation(), () -> mineBlock(mine, p, item, mine.getLocation()));
             }
         }
 
@@ -267,15 +272,50 @@ public final class VeinMinerRune extends SlimefunItem implements Listener, NotPl
         return false;
     }
 
+    /**
+     * Fires a synthetic BlockBreakEvent for the block and breaks it if allowed.
+     * Must be called from the region that owns the block; drops go to dropLoc.
+     */
+    private void mineBlock(Block mine, Player p, ItemStack tool, Location dropLoc) {
+        SYNTHETIC_EVENT.set(true);
+        try {
+            BlockBreakEvent event = new BlockBreakEvent(mine, p);
+            Bukkit.getPluginManager().callEvent(event);
+            if (!event.isCancelled()) {
+                if (event.isDropItems()) {
+                    for (ItemStack drop : mine.getDrops(tool)) {
+                        dropLoc.getWorld().dropItemNaturally(dropLoc, drop);
+                    }
+                }
+                mine.setType(Material.AIR);
+            }
+        }
+        finally {
+            SYNTHETIC_EVENT.set(false);
+        }
+    }
+
     private static void getVein(Set<Location> checked, Set<Block> found, Location l, Block b) {
         if (found.size() >= MAX) {
             return;
         }
 
+        World w = l.getWorld();
+        if (w == null) {
+            return;
+        }
+
         for (Location check : getAdjacentLocations(l)) {
-            if (checked.add(check) && check.getBlock().getType() == b.getType() && !StorageCacheUtils.hasBlock(b.getLocation())) {
-                found.add(b);
-                getVein(checked, found, check, check.getBlock());
+            if (checked.add(check)) {
+                // never touch unloaded chunks, that would force a load from the wrong region
+                if (!w.isChunkLoaded(check.getBlockX() >> 4, check.getBlockZ() >> 4)) {
+                    continue;
+                }
+                Block checkBlock = check.getBlock();
+                if (checkBlock.getType() == b.getType() && !StorageCacheUtils.hasBlock(check)) {
+                    found.add(checkBlock);
+                    getVein(checked, found, check, checkBlock);
+                }
             }
         }
     }

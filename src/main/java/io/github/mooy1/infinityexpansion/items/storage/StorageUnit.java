@@ -2,9 +2,9 @@ package io.github.mooy1.infinityexpansion.items.storage;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -84,7 +84,7 @@ public final class StorageUnit extends MenuBlock implements DistinctiveItem {
     );
 
     /* Instance constants */
-    private final Map<Location, StorageCache> caches = new HashMap<>();
+    private final Map<Location, StorageCache> caches = new ConcurrentHashMap<>();
     final int max;
 
     public StorageUnit(SlimefunItemStack item, int max, ItemStack[] recipe) {
@@ -141,10 +141,13 @@ public final class StorageUnit extends MenuBlock implements DistinctiveItem {
     protected void onPlace(@Nonnull BlockPlaceEvent e, @Nonnull Block b) {
         Pair<ItemStack, Integer> data = loadFromStack(e.getItemInHand());
         if (data != null) {
-            Scheduler.run(() -> {
+            // the cache touches live block state, so it must be loaded from the block's own region
+            Scheduler.runAtRegion(b.getLocation(), 1, () -> {
                 StorageCache cache = this.caches.get(b.getLocation());
-                cache.load(data.getFirstValue(), data.getFirstValue().getItemMeta());
-                cache.amount(data.getSecondValue());
+                if (cache != null) {
+                    cache.load(data.getFirstValue(), data.getFirstValue().getItemMeta());
+                    cache.amount(data.getSecondValue());
+                }
             });
         }
     }

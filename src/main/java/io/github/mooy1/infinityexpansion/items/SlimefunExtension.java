@@ -8,6 +8,7 @@ import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 
 import lombok.experimental.UtilityClass;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -285,8 +286,11 @@ public final class SlimefunExtension {
                     return;
                 }
 
-                Scheduler.run(() -> {
-                    Location check = l.clone().add(0, 1, 0);
+                Location check = l.clone().add(0, 1, 0);
+
+                // the block and entities above the reactor live in the reactor's region,
+                // so run there instead of the global scheduler
+                Scheduler.runAtRegion(check, () -> {
                     World w = check.getWorld();
                     if (w == null) {
                         return;
@@ -302,10 +306,10 @@ public final class SlimefunExtension {
                     if (!w.isChunkLoaded(chunkX, chunkZ)) {
                         return;
                     }
-                    boolean checkWitherProof;
-                    try {
-                        checkWitherProof = block.getType() == Material.AIR;
-                    } catch (NullPointerException e) {
+                    boolean checkWitherProof = block.getType() == Material.AIR;
+
+                    // defensive: verify we're in the correct owner context before accessing live state
+                    if (!Bukkit.isOwnedByCurrentRegion(check)) {
                         return;
                     }
 

@@ -1,9 +1,10 @@
 package io.github.mooy1.infinityexpansion.items.machines;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,8 +40,8 @@ import me.mrCookieSlime.Slimefun.api.inventory.BlockMenuPreset;
  */
 public final class SingularityConstructor extends AbstractMachineBlock implements RecipeDisplayItem {
 
-    private static final List<Recipe> RECIPE_LIST = new ArrayList<>();
-    private static final Map<String, Pair<Integer, Recipe>> RECIPE_MAP = new HashMap<>();
+    private static final List<Recipe> RECIPE_LIST = new CopyOnWriteArrayList<>();
+    private static final Map<String, Pair<Integer, Recipe>> RECIPE_MAP = new ConcurrentHashMap<>();
     public static final RecipeType TYPE = new RecipeType(InfinityExpansion.createKey("singularity_constructor"),
             Machines.SINGULARITY_CONSTRUCTOR, (stacks, itemStack) -> {
         int amt = 0;

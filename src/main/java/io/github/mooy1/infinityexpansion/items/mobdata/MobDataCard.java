@@ -1,9 +1,9 @@
 package io.github.mooy1.infinityexpansion.items.mobdata;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -30,7 +30,7 @@ import net.guizhanss.guizhanlib.utils.StringUtil;
 @ParametersAreNonnullByDefault
 public final class MobDataCard extends SlimefunItem implements RecipeDisplayItem, NotPlaceable {
 
-    static final Map<String, MobDataCard> CARDS = new HashMap<>();
+    static final Map<String, MobDataCard> CARDS = new ConcurrentHashMap<>();
 
     private static final String WIKI_PAGE = "mob-simulation";
 

@@ -1,7 +1,7 @@
 package io.github.mooy1.infinityexpansion.items.quarries;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,7 +21,7 @@ import net.guizhanss.guizhanlib.minecraft.helper.MaterialHelper;
 
 public final class Oscillator extends SlimefunItem {
 
-    private static final Map<String, Oscillator> OSCILLATORS = new HashMap<>();
+    private static final Map<String, Oscillator> OSCILLATORS = new ConcurrentHashMap<>();
 
     public final double chance;
 

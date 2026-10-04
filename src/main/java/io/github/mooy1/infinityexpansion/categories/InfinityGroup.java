@@ -1,6 +1,7 @@
 package io.github.mooy1.infinityexpansion.categories;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -89,9 +90,10 @@ public final class InfinityGroup extends FlexItemGroup {
     );
     private static final ItemStack INFO = new CustomItemStack(Material.CYAN_STAINED_GLASS_PANE, "&3信息");
     private static final SlimefunGuideImplementation GUIDE = Slimefun.getRegistry().getSlimefunGuide(SlimefunGuideMode.SURVIVAL_MODE);
-    private static final Map<UUID, String> HISTORY = new HashMap<>();
-    private static final LinkedHashMap<String, Pair<SlimefunItemStack, ItemStack[]>> ITEMS = new LinkedHashMap<>();
-    private static final List<String> IDS = new ArrayList<>();
+    // Thread-safe collections for Folia compatibility
+    private static final Map<UUID, String> HISTORY = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<String, Pair<SlimefunItemStack, ItemStack[]>> ITEMS = Collections.synchronizedMap(new LinkedHashMap<>());
+    private static final List<String> IDS = Collections.synchronizedList(new ArrayList<>());
 
     InfinityGroup(NamespacedKey key, ItemStack item, int tier) {
         super(key, item, tier);
@@ -114,7 +116,9 @@ public final class InfinityGroup extends FlexItemGroup {
     }
 
     public static void open(Player player, BlockMenu menu) {
-        PlayerProfile.get(player, profile -> Scheduler.run(() -> open(player, new BackEntry(menu, profile, null), true)));
+        PlayerProfile.get(player, profile ->
+                // opening menus touches the player, so it must run on the player's scheduler
+                Scheduler.runAtEntity(player, () -> open(player, new BackEntry(menu, profile, null), true)));
     }
 
     private static void open(@Nonnull Player player, @Nonnull BackEntry entry, boolean useHistory) {
@@ -160,40 +164,42 @@ public final class InfinityGroup extends FlexItemGroup {
                 player, "", ChatColor.GRAY + Slimefun.getLocalization().getMessage(player, "guide.back.guide"))));
 
         int i = 9;
-        for (Pair<SlimefunItemStack, ItemStack[]> item : ITEMS.values()) {
-            if (i == 45) {
-                break;
-            }
+        synchronized (ITEMS) {
+            for (Pair<SlimefunItemStack, ItemStack[]> item : ITEMS.values()) {
+                if (i == 45) {
+                    break;
+                }
 
-            SlimefunItem sfItem = item.getFirstValue().getItem();
-            if (sfItem == null) {
-                return;
-            }
+                SlimefunItem sfItem = item.getFirstValue().getItem();
+                if (sfItem == null) {
+                    return;
+                }
 
-            Research research = sfItem.getResearch();
-            if (research != null && !entry.profile.hasUnlocked(research)) {
-                ItemStack resItem = new CustomItemStack(
-                        ChestMenuUtils.getNotResearchedItem(),
-                        ChatColor.WHITE + ItemUtils.getItemName(sfItem.getItem()),
-                        "&4&l" + Slimefun.getLocalization().getMessage(player, "guide.locked"),
-                        "",
-                        "&a> 单击解锁",
-                        "",
-                        "&7需要 &b" + research.getCost() + " 级经验"
-                );
-                menu.addItem(i, resItem, (p, slot, item1, action) -> {
-                    research.unlockFromGuide(GUIDE, p, entry.profile, sfItem, Groups.INFINITY, 0);
-                    return false;
-                });
-            }
-            else {
-                menu.addItem(i, item.getFirstValue(), (p, slot, item1, action) -> {
-                    openInfinityRecipe(p, item.getFirstValue().getItemId(), entry);
-                    return false;
-                });
-            }
+                Research research = sfItem.getResearch();
+                if (research != null && !entry.profile.hasUnlocked(research)) {
+                    ItemStack resItem = new CustomItemStack(
+                            ChestMenuUtils.getNotResearchedItem(),
+                            ChatColor.WHITE + ItemUtils.getItemName(sfItem.getItem()),
+                            "&4&l" + Slimefun.getLocalization().getMessage(player, "guide.locked"),
+                            "",
+                            "&a> 单击解锁",
+                            "",
+                            "&7需要 &b" + research.getCost() + " 级经验"
+                    );
+                    menu.addItem(i, resItem, (p, slot, item1, action) -> {
+                        research.unlockFromGuide(GUIDE, p, entry.profile, sfItem, Groups.INFINITY, 0);
+                        return false;
+                    });
+                }
+                else {
+                    menu.addItem(i, item.getFirstValue(), (p, slot, item1, action) -> {
+                        openInfinityRecipe(p, item.getFirstValue().getItemId(), entry);
+                        return false;
+                    });
+                }
 
-            i++;
+                i++;
+            }
         }
 
         player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1, 1);

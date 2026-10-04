@@ -4,15 +4,13 @@
 
 ## 下载
 
-点击这里下载 InfinityExpansion: [下载 InfinityExpansion](https://builds.guizhanss.net/SlimefunGuguProject/InfinityExpansion/master)
+这是 InfinityExpansion 的 Folia 适配分支，使用 Gradle 构建。
+
+在 GitHub Actions 的每次构建产物（Artifacts）中下载最新的 jar。
 
 <p align="center">
-  <a href="https://github.com/SlimefunGuguProject/InfinityExpansion/actions/workflows/maven.yml">
-    <img src="https://github.com/SlimefunGuguProject/InfinityExpansion/actions/workflows/maven.yml/badge.svg" alt="Java CI"/>
-  </a>
-
-  <a href="https://builds.guizhanss.net/SlimefunGuguProject/InfinityExpansion/master">
-    <img src="https://builds.guizhanss.net/f/SlimefunGuguProject/InfinityExpansion/master/badge.svg" alt="Build status"/>
+  <a href="https://github.com/Sparkpixel-MC/InfinityExpansion-Folia/actions/workflows/build.yml">
+    <img src="https://github.com/Sparkpixel-MC/InfinityExpansion-Folia/actions/workflows/build.yml/badge.svg" alt="Build"/>
   </a>
 </p>
 

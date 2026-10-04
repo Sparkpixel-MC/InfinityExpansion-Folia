@@ -1,9 +1,9 @@
 package io.github.mooy1.infinityexpansion.items.machines;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -36,7 +36,7 @@ public final class GeoQuarry extends AbstractMachineBlock implements RecipeDispl
     private static final int STATUS = 4;
     private static final int[] OUTPUT_SLOTS = { 29, 30, 31, 32, 33, 38, 39, 40, 41, 42 };
 
-    private final Map<Pair<Biome, World.Environment>, RandomizedSet<ItemStack>> recipes = new HashMap<>();
+    private final Map<Pair<Biome, World.Environment>, RandomizedSet<ItemStack>> recipes = new ConcurrentHashMap<>();
     @Setter
     private int ticksPerOutput;
 

@@ -311,6 +311,10 @@ public final class VeinMinerRune extends SlimefunItem implements Listener, NotPl
                 if (!w.isChunkLoaded(check.getBlockX() >> 4, check.getBlockZ() >> 4)) {
                     continue;
                 }
+                // block state is owned by a region, so skip blocks outside the current one
+                if (!Bukkit.isOwnedByCurrentRegion(check)) {
+                    continue;
+                }
                 Block checkBlock = check.getBlock();
                 if (checkBlock.getType() == b.getType() && !StorageCacheUtils.hasBlock(check)) {
                     found.add(checkBlock);

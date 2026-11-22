@@ -4,19 +4,19 @@ plugins {
 }
 
 group = "io.github.mooy1"
-version = "1.8.7-Folia"
+version = "1.9.0-Folia"
 
 java {
     toolchain {
-        // JDK 25 is needed to read InfinityLib's Java 25 class files,
-        // while the addon itself still targets Java 21 bytecode
+        // Folia 26.3 requires Java 25, so both the toolchain and the
+        // produced bytecode target Java 25
         languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.release.set(21)
+    options.release.set(25)
 }
 
 repositories {
@@ -27,7 +27,7 @@ repositories {
 
 dependencies {
     // Folia API (includes the region/entity/global/async schedulers)
-    compileOnly("dev.folia:folia-api:1.21.8-R0.1-SNAPSHOT")
+    compileOnly("dev.folia:folia-api:26.3.build.26-stable")
 
     compileOnly("com.github.SlimefunGuguProject:Slimefun4:2025.1.2")
 

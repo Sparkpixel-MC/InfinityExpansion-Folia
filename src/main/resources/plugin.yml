@@ -8,7 +8,7 @@ depend:
   - GuizhanLibPlugin
 softdepend: [LiteXpansion]
 version: ${version}
-api-version: 1.16
+api-version: '26.3'
 folia-supported: true
 
 commands:

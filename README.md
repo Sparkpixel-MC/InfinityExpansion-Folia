@@ -4,13 +4,15 @@
 
 ## 下载
 
-这是 InfinityExpansion 的 Folia 适配分支，使用 Gradle 构建。
+这是 InfinityExpansion 的 Folia 适配分支，使用 Gradle 构建，面向 Paper/Folia 26.3 与 Java 25。
 
 在 GitHub Actions 的每次构建产物（Artifacts）中下载最新的 jar。
 
+上游中文版（非 Folia 分支）可从 [Guizhan Resources](https://resources.guizhanss.com/plugin/InfinityExpansion) 下载。
+
 <p align="center">
-  <a href="https://github.com/Sparkpixel-MC/InfinityExpansion-Folia/actions/workflows/build.yml">
-    <img src="https://github.com/Sparkpixel-MC/InfinityExpansion-Folia/actions/workflows/build.yml/badge.svg" alt="Build"/>
+  <a href="https://github.com/Sparkpixel-MC/InfinityExpansion-Folia/actions/workflows/build-and-release.yml">
+    <img src="https://github.com/Sparkpixel-MC/InfinityExpansion-Folia/actions/workflows/build-and-release.yml/badge.svg" alt="Build"/>
   </a>
 </p>
 
